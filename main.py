@@ -4,6 +4,7 @@ import requests
 
 from prettytable import PrettyTable
 from bs4 import BeautifulSoup
+import json
 
 
 class Country:
@@ -61,8 +62,10 @@ class EbayItem:
 
             seller_element = soup.find(class_="x-sellercard-atf")
             seller_url = seller_element.find('a').get('href')
-            seller_name = seller_url.find('span').
+            seller_name = seller_element.find('span').get_text(strip=True)
             seller = f"{seller_name} - {seller_url}"
+
+            shipping_element = soup.find(class_="ux-labels-values__values-content").find('span').get_text(strip=True)
 
             description = soup.find(id='desc_ifr').get('src')
 
@@ -72,6 +75,7 @@ class EbayItem:
                 'item_url': self.url,
                 'price': price,
                 'seller': seller,
+                'shipping': shipping_element,
                 'description': description
             }
         else:
@@ -85,7 +89,14 @@ class EbayItem:
             print(f"Item_URL: {item_data['item_url']}")
             print(f"Price: {item_data['price']}")
             print(f"Seller: {item_data['seller']}")
+            print(f"Shipping: {item_data['shipping']}")
             print(f"Description URL: {item_data['description']}")
+
+    def save_to_json(self, item_data, filename='item_data.json'):
+        if item_data:
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(item_data, f, ensure_ascii=False, indent=4)
+            print(f"Data saved to {filename}")
 
 
 if __name__ == '__main__':
@@ -96,3 +107,4 @@ if __name__ == '__main__':
     ebay_item_info = EbayItem(url)
     item_data = ebay_item_info.get_item_data()
     ebay_item_info.display_item_data(item_data)
+    ebay_item_info.save_to_json(item_data)
