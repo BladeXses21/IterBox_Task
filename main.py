@@ -50,12 +50,13 @@ class EbayItem:
             title_element = soup.find(class_="x-item-title__mainTitle")
             title = title_element.get_text(strip=True) if title_element else 'N/A'
 
-            image = '\n'
+            images = []
             image_container = soup.find(class_="ux-image-carousel-container image-container")
             if image_container:
                 image_elements = image_container.find_all(class_="ux-image-carousel-item image-treatment image")
                 for i in image_elements:
-                    image += f"{i.get('data-idx')} - {i.find('img').get('data-src')}\n"
+                    img_url = i.find('img').get('data-src')
+                    images.append(img_url)
 
             price_element = soup.find(class_='x-price-primary')
             price = price_element.get_text(strip=True) if price_element else 'N/A'
@@ -65,17 +66,17 @@ class EbayItem:
             seller_name = seller_element.find('span').get_text(strip=True)
             seller = f"{seller_name} - {seller_url}"
 
-            shipping_element = soup.find(class_="ux-labels-values__values-content").find('span').get_text(strip=True)
+            shipping_container = soup.find(class_="ux-labels-values col-12 ux-labels-values--shipping").find(class_='ux-labels-values__values col-9').get_text(strip=True)
 
             description = soup.find(id='desc_ifr').get('src')
 
             return {
                 'title': title,
-                'image': image,
+                'images': images,
                 'item_url': self.url,
                 'price': price,
                 'seller': seller,
-                'shipping': shipping_element,
+                'shipping': shipping_container,
                 'description': description
             }
         else:
@@ -85,7 +86,8 @@ class EbayItem:
     def display_item_data(self, item_data):
         if item_data:
             print(f"Title: {item_data['title']}")
-            print(f"Image: {item_data['image']}")
+            for index, img_url in enumerate(item_data['images'], start=1):
+                print(index, img_url)
             print(f"Item_URL: {item_data['item_url']}")
             print(f"Price: {item_data['price']}")
             print(f"Seller: {item_data['seller']}")
@@ -103,7 +105,8 @@ if __name__ == '__main__':
     country_info = Country()
     asyncio.run(country_info.get_country_info())
 
-    url = input("Enter ur URL:\n")
+    url = input(
+        "You can use this - https://www.ebay.com/itm/355841037427?_trkparms=amclksrc%3DITM%26aid%3D777008%26algo%3DPERSONAL.TOPIC%26ao%3D1%26asc%3D20230906152218%26meid%3D50b65bd094cc434ba3fca4adec279fb6%26pid%3D101817%26rk%3D1%26rkt%3D1%26itm%3D355841037427%26pmt%3D0%26noa%3D1%26pg%3D4375194%26algv%3DPersonalizedTopicsV2WithDynamicSizeRanker%26brand%3DJordan&_trksid=p4375194.c101817.m47269&_trkparms=parentrq%3Aa24e31dd1900a514ba3b8ae4ffff9afe%7Cpageci%3A220cc051-3f96-11ef-a420-fea1091129b8%7Ciid%3A1%7Cvlpname%3Avlp_homepage\nEnter ur URL :\n")
     ebay_item_info = EbayItem(url)
     item_data = ebay_item_info.get_item_data()
     ebay_item_info.display_item_data(item_data)
